@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Todo List</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="todo-app">
+            <div class="app-header">
+                <h1><i class="fas fa-check-circle"></i> To-Do List</h1>
+                <div class="header-actions">
+                    <button class="icon-btn" id="manageCategoriesBtn" title="Manage Categories">
+                        <i class="fas fa-tags"></i>
+                    </button>
+                    <button class="icon-btn" id="exportBtn" title="Export Tasks">
+                        <i class="fas fa-file-export"></i>
+                    </button>
+                    <button class="icon-btn" id="importBtn" title="Import Tasks">
+                        <i class="fas fa-file-import"></i>
+                    </button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button class="icon-btn" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="input-section">
+                <div class="task-input-group">
+                    <input type="text" id="taskInput" placeholder="Add your task...">
+                    <div class="task-details">
+                        <select id="priorityInput">
+                            <option value="high">High Priority</option>
+                            <option value="medium" selected>Medium Priority</option>
+                            <option value="low">Low Priority</option>
+                        </select>
+                        <input type="date" id="dueDateInput">
+                        <input type="text" id="categoryInput" placeholder="Category (optional)">
+                    </div>
+                    <div class="tags-input">
+                        <input type="text" id="tagInput" placeholder="Add tags (comma separated)">
+                        <div id="tagColors" class="tag-colors">
+                            <button class="color-btn" data-color="#ff0000" style="background: #ff0000;"></button>
+                            <button class="color-btn" data-color="#00ff00" style="background: #00ff00;"></button>
+                            <button class="color-btn" data-color="#0000ff" style="background: #0000ff;"></button>
+                            <button class="color-btn" data-color="#ffff00" style="background: #ffff00;"></button>
+                            <button class="color-btn" data-color="#ff00ff" style="background: #ff00ff;"></button>
+                        </div>
+                    </div>
+                    <div class="subtasks-input">
+                        <input type="text" id="subtaskInput" placeholder="Add subtask...">
+                        <button id="addSubtaskBtn" class="icon-btn"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div id="subtasksList" class="subtasks-list"></div>
+                    <textarea id="taskNotes" placeholder="Add notes (optional)"></textarea>
+                </div>
+                <button id="addButton">Add Task</button>
+            </div>
+            <div class="search-section">
+                <input type="text" id="searchInput" placeholder="Search tasks...">
+            </div>
+            <div class="filters">
+                <select id="filterSelect">
+                    <option value="all">All Tasks</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select id="prioritySelect">
+                    <option value="all">All Priorities</option>
+                    <option value="high">High Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="low">Low Priority</option>
+                </select>
+                <select id="sortSelect">
+                    <option value="priority">Sort by Priority</option>
+                    <option value="dueDate">Sort by Due Date</option>
+                    <option value="created">Sort by Created Date</option>
+                    <option value="progress">Sort by Progress</option>
+                </select>
+            </div>
+            <ul id="taskList" class="task-list">
+                <!-- Tasks will be added here dynamically -->
+            </ul>
+            <div class="task-stats">
+                <div class="stats-main">
+                    <span id="taskCount">0 tasks remaining</span>
+                    <div class="stats-details">
+                        <span id="highPriorityCount">0 high priority</span>
+                        <span id="overdueCount">0 overdue</span>
+                    </div>
+                </div>
+                <div class="stats-chart">
+                    <canvas id="statsChart"></canvas>
+                </div>
+                <div class="stats-actions">
+                    <button id="clearCompleted">Clear Completed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="categoriesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Categories</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="categories-list">
+                    <h3>Existing Categories</h3>
+                    <div id="categoriesList"></div>
+                </div>
+                <div class="add-category">
+                    <h3>Add New Category</h3>
+                    <div class="category-input-group">
+                        <input type="text" id="newCategoryInput" placeholder="Enter category name">
+                        <input type="color" id="categoryColor" value="#667eea">
+                        <button id="addCategoryBtn">Add Category</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="taskDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Details</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="taskDetailsContent"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="shortcutsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-list">
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + N</span>
+                        <span class="shortcut-description">Add new task</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + F</span>
+                        <span class="shortcut-description">Focus search</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + D</span>
+                        <span class="shortcut-description">Toggle dark mode</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key">Ctrl + H</span>
+                        <span class="shortcut-description">Show/hide shortcuts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Statistics</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Completion Rate</h3>
+                        <div class="stat-value" id="completionRate">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Average Tasks per Day</h3>
+                        <div class="stat-value" id="avgTasksPerDay">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Most Productive Day</h3>
+                        <div class="stat-value" id="mostProductiveDay">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Task Streak</h3>
+                        <div class="stat-value" id="taskStreak">0 days</div>
+                    </div>
+                </div>
+                <div class="stats-chart-container">
+                    <canvas id="completionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
